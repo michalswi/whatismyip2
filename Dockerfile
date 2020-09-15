@@ -1,10 +1,10 @@
 ARG GOLANG_VERSION
 ARG ALPINE_VERSION
 
-FROM golang:${GOLANG_VERSION}-alpine${ALPINE_VERSION}
+# build
+FROM golang:${GOLANG_VERSION}-alpine${ALPINE_VERSION} AS builder
 
 ARG APPNAME
-ENV SERVER_ADDR "8080"
 
 RUN apk --no-cache add make git libc-dev libpcap-dev gcc
 
@@ -18,6 +18,14 @@ COPY go.sum go.sum
 RUN go mod download
 RUN make build
 
-CMD ["./whatismyip"]
-# COPY ${APPNAME} /usr/bin/${APPNAME}
-# CMD ["whatismyip"]
+# execute
+FROM alpine:${ALPINE_VERSION}
+
+RUN apk --no-cache add libc-dev libpcap-dev gcc
+
+ARG APPNAME
+ENV SERVER_ADDR "8080"
+
+COPY --from=builder /app/${APPNAME} /usr/bin/${APPNAME}
+
+CMD ["whatismyip"]

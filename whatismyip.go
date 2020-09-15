@@ -12,6 +12,8 @@ import (
 	"github.com/google/gopacket/pcap"
 )
 
+// sudo SERVER_ADDR=8080 ./whatismyip
+
 var (
 	device      string = "lo"
 	snapshotLen int32  = 1024
@@ -20,6 +22,8 @@ var (
 	timeout     time.Duration = 1 * time.Second
 	handle      *pcap.Handle
 )
+
+var n = "none"
 
 func main() {
 
@@ -32,6 +36,28 @@ func main() {
 		fmt.Fprintln(w, "ok")
 	})
 
+	// in docker initial request to localhost is needed
+	http.HandleFunc("/in", func(w http.ResponseWriter, r *http.Request) {
+		_, err := http.Get(fmt.Sprintf("http://localhost:%s", serverAddress))
+		if err != nil {
+			log.Printf("Initial request: %v\n", err)
+		}
+	})
+
+	go func() {
+		fmt.Println("Run pcap.")
+		handle, err = pcap.OpenLive(device, snapshotLen, promiscuous, timeout)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer handle.Close()
+		packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
+		for packet := range packetSource.Packets() {
+			log.Println("Inspecting packet...")
+			n = getPacketInfo(packet)
+		}
+	}()
+
 	fmt.Printf("Starting server on port %s...\n", serverAddress)
 	port := fmt.Sprintf(":%s", serverAddress)
 	if err := http.ListenAndServe(port, nil); err != nil {
@@ -40,28 +66,19 @@ func main() {
 }
 
 func getIP(w http.ResponseWriter, r *http.Request) {
-	var n string
-	handle, err = pcap.OpenLive(device, snapshotLen, promiscuous, timeout)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer handle.Close()
-	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-	for packet := range packetSource.Packets() {
-		n = getPacketInfo(packet)
-		break
-	}
 	log.Printf("Remote IP is: %s\n", n)
 	fmt.Fprintf(w, "%s", n)
 }
 
 func getPacketInfo(packet gopacket.Packet) string {
 	var ipp string
-	// ethernetLayer := packet.Layer(layers.LayerTypeEthernet)
-	// if ethernetLayer != nil {
-	// 	ethernetPacket, _ := ethernetLayer.(*layers.Ethernet)
-	// 	log.Printf("Source MAC: %s, Ethernet type: %s\n", ethernetPacket.SrcMAC, ethernetPacket.EthernetType)
-	// }
+
+	ethernetLayer := packet.Layer(layers.LayerTypeEthernet)
+	if ethernetLayer != nil {
+		ethernetPacket, _ := ethernetLayer.(*layers.Ethernet)
+		log.Printf("Source MAC: %s, Ethernet type: %s\n", ethernetPacket.SrcMAC, ethernetPacket.EthernetType)
+	}
+
 	ipLayer := packet.Layer(layers.LayerTypeIPv4)
 	if ipLayer != nil {
 		ip, _ := ipLayer.(*layers.IPv4)
