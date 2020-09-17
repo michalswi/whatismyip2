@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -17,8 +18,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/michalswi/whatismyip/server"
 )
-
-// sudo SERVER_ADDR=8080 ./whatismyip
 
 var (
 	// device      string = "lo"
@@ -35,6 +34,13 @@ func main() {
 
 	serverAddress := os.Getenv("SERVER_ADDR")
 
+	var netInterface string
+	if len(os.Args) < 2 {
+		netInterface = "eth"
+	} else {
+		netInterface = os.Args[1]
+	}
+
 	r := mux.NewRouter()
 	srv := server.NewServer(r, serverAddress)
 
@@ -48,13 +54,13 @@ func main() {
 		fmt.Fprintln(w, "ok")
 	})
 
-	// in docker initial request to localhost/lo is needed
-	r.HandleFunc("/in", func(w http.ResponseWriter, r *http.Request) {
-		_, err := http.Get(fmt.Sprintf("http://localhost:%s", serverAddress))
-		if err != nil {
-			log.Printf("Initial request: %v\n", err)
-		}
-	})
+	// in docker initial request might be needed if 'device=localhost/lo'
+	// r.HandleFunc("/in", func(w http.ResponseWriter, r *http.Request) {
+	// 	_, err := http.Get(fmt.Sprintf("http://localhost:%s", serverAddress))
+	// 	if err != nil {
+	// 		log.Printf("Initial request: %v\n", err)
+	// 	}
+	// })
 
 	// start server
 	go func() {
@@ -68,7 +74,7 @@ func main() {
 	// start pcap
 	go func() {
 		log.Println("Run pcap..")
-		var device = getInterfaceName()
+		var device = getInterfaceName(netInterface)
 		handle, err = pcap.OpenLive(device, snapshotLen, promiscuous, timeout)
 		if err != nil {
 			log.Fatal(err)
@@ -98,17 +104,15 @@ func gracefulShutdown(srv *http.Server) {
 	os.Exit(0)
 }
 
-func getInterfaceName() string {
+func getInterfaceName(netInterface string) string {
 	var device string
 	interfaces, _ := net.Interfaces()
 	for _, inter := range interfaces {
-		if inter.Name != "lo" {
-			// # todo
-			fmt.Println("Name  :", inter.Name)
+		if inter.Name != "lo" && strings.Contains(inter.Name, netInterface) {
+			log.Printf("Interface name: %s", inter.Name)
 			device = inter.Name
 		}
 	}
-	fmt.Println(device)
 	return device
 }
 

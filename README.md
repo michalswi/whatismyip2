@@ -1,19 +1,16 @@
-### inprogress
+### public IP checker
 
 ```
 OS req:
 - libc-dev 
 - libpcap-dev
 - gcc
+- make
 ```
 
 ```
-HOW to run:
-
-> for docker init request required
-$ curl localhost:8080/in
-
-> 
-$ curl localhost:8080/
-127.0.0.1
+$ make build
+$ sudo SERVER_ADDR=8080 ./whatismyip
+OR
+$ sudo SERVER_ADDR=8080 ./whatismyip <network_interface>
 ```
