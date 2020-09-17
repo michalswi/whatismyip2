@@ -20,7 +20,6 @@ import (
 )
 
 var (
-	// device      string = "lo"
 	snapshotLen int32 = 1024
 	promiscuous bool  = false
 	err         error
@@ -28,7 +27,7 @@ var (
 	handle      *pcap.Handle
 )
 
-var n = "none"
+var n string
 
 func main() {
 
@@ -128,11 +127,15 @@ func getPacketInfo(packet gopacket.Packet) string {
 	ipLayer := packet.Layer(layers.LayerTypeIPv4)
 	if ipLayer != nil {
 		ip, _ := ipLayer.(*layers.IPv4)
-		log.Printf("SourceIP: %s, Protocol: %s\n", ip.SrcIP, ip.Protocol)
-		ipp = fmt.Sprintf("%v", ip.SrcIP)
+		if ip.TTL != 128 && ip.TTL != 64 {
+			log.Printf("SourceIP: %s, Protocol: %s, TTL: %d\n", ip.SrcIP, ip.Protocol, ip.TTL)
+			ipp = fmt.Sprintf("%v", ip.SrcIP)
+		}
 	}
+
 	if err := packet.ErrorLayer(); err != nil {
 		log.Println("Error decoding some part of the packet:", err)
 	}
+
 	return ipp
 }
