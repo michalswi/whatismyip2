@@ -1,4 +1,4 @@
-### public IP checker [in progress]
+### public IP checker
 
 ```
 OS req:
@@ -9,12 +9,12 @@ OS req:
 ```
 
 ```
-$ make build
+make build
 
-$ sudo SERVER_ADDR=8080 ./whatismyip
+sudo SERVER_PORT=8080 ./whatismyip
 OR
-$ sudo SERVER_ADDR=8080 ./whatismyip <network_interface>
+sudo SERVER_PORT=8080 ./whatismyip <network_interface>
 
-$ curl localhost:8080
+curl localhost:8080/
 <ip>
 ```
