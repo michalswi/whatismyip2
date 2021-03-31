@@ -31,7 +31,7 @@ var n string
 
 func main() {
 
-	serverAddress := os.Getenv("SERVER_ADDR")
+	serverAddress := os.Getenv("SERVER_PORT")
 
 	var netInterface string
 	if len(os.Args) < 2 {
