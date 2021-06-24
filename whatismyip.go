@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -28,60 +29,48 @@ var (
 )
 
 var n string
+var logger = log.New(os.Stdout, "IPer ", log.LstdFlags|log.Lshortfile|log.Ltime|log.LUTC)
+var netInterface = flag.String("inter", "eth", "network interface listen to")
 
 func main() {
 
-	serverAddress := os.Getenv("SERVER_PORT")
-
-	var netInterface string
-	if len(os.Args) < 2 {
-		netInterface = "eth"
-	} else {
-		netInterface = os.Args[1]
-	}
+	flag.Parse()
+	serverPort := os.Getenv("SERVER_PORT")
 
 	r := mux.NewRouter()
-	srv := server.NewServer(r, serverAddress)
+	srv := server.NewServer(r, serverPort)
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Remote IP is: %s\n", n)
+		logger.Printf("Remote IP is: %s\n", n)
 		fmt.Fprintf(w, "%s", n)
 	})
 
 	r.HandleFunc("/hz", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Request from: %v\n", r.RemoteAddr)
+		logger.Printf("Request from: %v\n", r.RemoteAddr)
 		fmt.Fprintln(w, "ok")
 	})
 
-	// in docker initial request might be needed if 'device=localhost/lo'
-	// r.HandleFunc("/in", func(w http.ResponseWriter, r *http.Request) {
-	// 	_, err := http.Get(fmt.Sprintf("http://localhost:%s", serverAddress))
-	// 	if err != nil {
-	// 		log.Printf("Initial request: %v\n", err)
-	// 	}
-	// })
-
 	// start server
 	go func() {
-		log.Printf("Starting server on port %s..", serverAddress)
+		logger.Println("Server is ready to handle requests at port", serverPort)
 		err := srv.ListenAndServe()
 		if err != nil {
-			log.Fatalf("Server failed to start: %v", err)
+			logger.Fatalf("server failed to start: %v", err)
 		}
 	}()
 
 	// start pcap
 	go func() {
-		log.Println("Run pcap..")
-		var device = getInterfaceName(netInterface)
+		logger.Println("Run packet capture..")
+		var device = getInterfaceName(*netInterface)
 		handle, err = pcap.OpenLive(device, snapshotLen, promiscuous, timeout)
 		if err != nil {
-			log.Fatal(err)
+			logger.Fatalf("pcap failed to start: %v", err)
 		}
 		defer handle.Close()
 		packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 		for packet := range packetSource.Packets() {
-			log.Println("Inspecting packet...")
+			logger.Println("Inspecting packet...")
 			n = getPacketInfo(packet)
 		}
 	}()
@@ -97,9 +86,9 @@ func gracefulShutdown(srv *http.Server) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Could not gracefully shutdown the server: %v\n", err)
+		logger.Fatalf("could not gracefully shutdown the server: %v\n", err)
 	}
-	log.Printf("Shutting down the server...\n")
+	logger.Printf("Shutting down the server...\n")
 	os.Exit(0)
 }
 
@@ -108,7 +97,7 @@ func getInterfaceName(netInterface string) string {
 	interfaces, _ := net.Interfaces()
 	for _, inter := range interfaces {
 		if inter.Name != "lo" && strings.Contains(inter.Name, netInterface) {
-			log.Printf("Interface name: %s", inter.Name)
+			logger.Printf("Interface name: %s", inter.Name)
 			device = inter.Name
 		}
 	}
@@ -121,20 +110,20 @@ func getPacketInfo(packet gopacket.Packet) string {
 	ethernetLayer := packet.Layer(layers.LayerTypeEthernet)
 	if ethernetLayer != nil {
 		ethernetPacket, _ := ethernetLayer.(*layers.Ethernet)
-		log.Printf("Source MAC: %s, Ethernet type: %s\n", ethernetPacket.SrcMAC, ethernetPacket.EthernetType)
+		logger.Printf("Source MAC: %s, Ethernet type: %s\n", ethernetPacket.SrcMAC, ethernetPacket.EthernetType)
 	}
 
 	ipLayer := packet.Layer(layers.LayerTypeIPv4)
 	if ipLayer != nil {
 		ip, _ := ipLayer.(*layers.IPv4)
 		if ip.TTL != 128 && ip.TTL != 64 {
-			log.Printf("SourceIP: %s, Protocol: %s, TTL: %d\n", ip.SrcIP, ip.Protocol, ip.TTL)
+			logger.Printf("SourceIP: %s, Protocol: %s, TTL: %d\n", ip.SrcIP, ip.Protocol, ip.TTL)
 			ipp = fmt.Sprintf("%v", ip.SrcIP)
 		}
 	}
 
 	if err := packet.ErrorLayer(); err != nil {
-		log.Println("Error decoding some part of the packet:", err)
+		logger.Println("error decoding some part of the packet:", err)
 	}
 
 	return ipp
