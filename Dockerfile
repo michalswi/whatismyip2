@@ -25,7 +25,7 @@ FROM alpine:${ALPINE_VERSION}
 RUN apk --no-cache add libc-dev libpcap-dev gcc
 
 ARG APPNAME
-ENV SERVER_ADDR "8080"
+ENV SERVER_PORT 8080
 
 COPY --from=builder /app/${APPNAME} /usr/bin/${APPNAME}
 

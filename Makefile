@@ -3,25 +3,25 @@ ALPINE_VERSION := 3.13
 
 APPNAME := whatismyip
 
-SERVER_ADDR ?= 80
+SERVER_PORT ?= 8080
 
 .DEFAULT_GOAL := help
-.PHONY: build remove docker-build docker-run docker-stop
+.PHONY: build run docker-build docker-run docker-stop
 
 help:
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-zA-Z_-]+:.*?##/ \
 	{ printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-build:	## Build bin
+build: ## Build bin
 	CGO_ENABLED=1 \
 	go build \
 	-v \
 	-o $(APPNAME) .
 
-remove:	## Remove bin
-	rm -rf $(APPNAME)
+run: ## Run app, <interface> (default interface, eth*)
+	echo "run app"
 
-docker-build:	## Build docker image
+docker-build: ## Build docker image
 	docker build \
 	--pull \
 	--build-arg GOLANG_VERSION="$(GOLANG_VERSION)" \
@@ -30,9 +30,11 @@ docker-build:	## Build docker image
 	--tag="$(APPNAME):latest" \
 	.
 
-docker-run:	## Run docker
-	docker run --rm -d -p 8080:8080 --name $(APPNAME) $(APPNAME):latest && \
+docker-run: ## Run docker
+	docker run --rm -d \
+	-p $(SERVER_PORT):$(SERVER_PORT) \
+	--name $(APPNAME) $(APPNAME):latest && \
 	docker ps
 
-docker-stop:	## Stop docker
+docker-stop: ## Stop docker
 	docker stop $(APPNAME)
