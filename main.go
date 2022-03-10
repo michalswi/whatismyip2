@@ -28,7 +28,7 @@ var (
 	handle      *pcap.Handle
 )
 
-var n string
+var remoteIP string
 var logger = log.New(os.Stdout, "IPer ", log.LstdFlags|log.Lshortfile|log.Ltime|log.LUTC)
 var netInterface = flag.String("inter", "eth", "network interface listen to")
 
@@ -41,8 +41,18 @@ func main() {
 	srv := server.NewServer(r, serverPort)
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		logger.Printf("Remote IP is: %s\n", n)
-		fmt.Fprintf(w, "%s", n)
+		logger.Printf("Raw Remote IP is: %s\n", remoteIP)
+		fmt.Fprintf(w, "%s", remoteIP)
+	})
+
+	r.HandleFunc("/ip", func(w http.ResponseWriter, r *http.Request) {
+		logger.Printf("HTML Remote IP is: %s\n", remoteIP)
+		var html = `
+		<html>
+		<p><b>IP</b>: %s</p>
+		</html>
+		`
+		fmt.Fprintf(w, html, remoteIP)
 	})
 
 	r.HandleFunc("/hz", func(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +81,7 @@ func main() {
 		packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 		for packet := range packetSource.Packets() {
 			logger.Println("Inspecting packet...")
-			n = getPacketInfo(packet)
+			remoteIP = getPacketInfo(packet)
 		}
 	}()
 

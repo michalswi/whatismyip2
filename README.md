@@ -10,24 +10,39 @@ gcc
 make
 ```
 
-### # local deployment
+### # how to run
+
+For tests use Virtual Machine, Azure VM etc.  
+App doesn't display **Remote IP**, neither on your **workstation** nor on your **workstation** in docker.
+
 ```
+## VM example
+
+#
+
 make build
 
 sudo SERVER_PORT=8080 ./whatismyip
 OR
 sudo SERVER_PORT=8080 ./whatismyip -inter <network_interface>
 
-curl localhost:8080/
+> raw
+$ curl <vm_ip>:8080/
 <source_ip>
-```
 
-### # remote deployment (docker)
+> html
+$ curl <vm_ip>:8080/ip
 
-For remote deployment use VM, Azure ACI etc. App doesn't work properly if you run it on your workstation (in docker).
 
-```
-[vm]$ make docker-run
-[PC]$ curl <vm_public_ip>:8080
-<source_ip>
+# on VM in docker 
+
+make docker-run
+
+
+## Azure ACI [toverify]
+
+az login
+
+make azure-rg
+make azure-aci
 ```
