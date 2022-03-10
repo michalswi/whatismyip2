@@ -11,7 +11,7 @@ RUN apk --no-cache add make git libc-dev libpcap-dev gcc
 WORKDIR /app
 
 COPY server server
-COPY whatismyip.go whatismyip.go
+COPY main.go main.go
 COPY Makefile Makefile
 COPY go.mod go.mod
 COPY go.sum go.sum
