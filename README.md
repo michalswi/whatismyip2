@@ -13,10 +13,12 @@ make
 ### # how to run
 
 For tests use Virtual Machine, Azure VM etc.  
-App doesn't display **Remote IP**, neither on your workstation nor in docker.
+App doesn't display **Remote IP**, neither on your **workstation** nor on your **workstation** in docker.
 
 ```
-# VM example
+## VM example
+
+#
 
 make build
 
@@ -32,7 +34,14 @@ $ curl <vm_ip>:8080/
 $ curl <vm_ip>:8080/ip
 
 
-# Azure ACI [toverify]
+# on VM in docker 
+
+make docker-run
+
+
+## Azure ACI [toverify]
+
+az login
 
 make azure-rg
 make azure-aci
