@@ -1,14 +1,10 @@
 GOLANG_VERSION := 1.15.6
 ALPINE_VERSION := 3.13
 
-DOCKER_REPO := michalsw
+DOCKER_REPO := local
 APPNAME := whatismyip
 
 SERVER_PORT ?= 8080
-
-AZ_LOCATION ?= westeurope
-AZ_RANDOM ?=$(shell head /dev/urandom | tr -dc a-z0-9 | head -c 7)
-AZ_DNS_LABEL ?= $(APPNAME)-$(AZ_RANDOM)
 
 .DEFAULT_GOAL := help
 .PHONY: build docker-build docker-run docker-stop
@@ -41,21 +37,3 @@ docker-run: ## Run docker
 
 docker-stop: ## Stop docker
 	docker stop $(APPNAME)
-
-azure-rg:	## Create the Azure Resource Group
-	az group create --name $(APPNAME)-rg --location $(AZ_LOCATION)
-
-azure-rg-del:	## Delete the Azure Resource Group
-	az group delete --name $(APPNAME)-rg
-
-azure-aci:	## Run Azure Container Instance
-	az container create \
-	--resource-group $(APPNAME)-rg \
-	--name $(APPNAME) \
-	--image $(DOCKER_REPO)/$(APPNAME) \
-	--restart-policy Always \
-	--ports $(SERVER_PORT) \
-	--dns-name-label $(AZ_DNS_LABEL) \
-	--location $(AZ_LOCATION) \
-	--environment-variables \
-		SERVER_PORT=$(SERVER_PORT)

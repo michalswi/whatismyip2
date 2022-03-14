@@ -41,11 +41,6 @@ func main() {
 	srv := server.NewServer(r, serverPort)
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		logger.Printf("Raw Remote IP is: %s\n", remoteIP)
-		fmt.Fprintf(w, "%s", remoteIP)
-	})
-
-	r.HandleFunc("/ip", func(w http.ResponseWriter, r *http.Request) {
 		logger.Printf("HTML Remote IP is: %s\n", remoteIP)
 		var html = `
 		<html>
@@ -53,6 +48,11 @@ func main() {
 		</html>
 		`
 		fmt.Fprintf(w, html, remoteIP)
+	})
+
+	r.HandleFunc("/ip", func(w http.ResponseWriter, r *http.Request) {
+		logger.Printf("Raw Remote IP is: %s\n", remoteIP)
+		fmt.Fprintf(w, "%s", remoteIP)
 	})
 
 	r.HandleFunc("/hz", func(w http.ResponseWriter, r *http.Request) {
