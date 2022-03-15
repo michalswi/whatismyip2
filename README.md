@@ -12,21 +12,26 @@ make
 
 ### # how to run
 
-For tests use Virtual Machine, Azure VM etc. App doesn't display **Remote IP** neither at your **workstation** nor in docker.
-
 ```
-ssh <vm>
+# docker (if eth* available)
+
+make docker-build
+make docker-run
+
+curl localhost:8080/
+curl localhost:8080/ip
+
+make docker-stop
+
+
+# VM
 
 make build
 
-sudo SERVER_PORT=8080 ./whatismyip
+sudo SERVER_PORT=8080 ./whatismyip          // if eth* available
 OR
 sudo SERVER_PORT=8080 ./whatismyip -inter <network_interface>
 
-> html
-$ curl <vm_ip>:8080/
-
-> raw
-$ curl <vm_ip>:8080/ip
-<source_ip>
+curl <vm_ip>:8080/
+curl <vm_ip>:8080/ip
 ```
