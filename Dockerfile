@@ -29,4 +29,4 @@ ENV SERVER_PORT 8080
 
 COPY --from=builder /app/${APPNAME} /usr/bin/${APPNAME}
 
-CMD ["whatismyip"]
+CMD ["whatismyip2"]

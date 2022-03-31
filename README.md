@@ -13,7 +13,7 @@ make
 ### # how to run
 
 ```
-# docker (if eth* available)
+# docker (if eth* available in your workstation)
 
 make docker-build
 make docker-run
@@ -28,9 +28,9 @@ make docker-stop
 
 make build
 
-sudo SERVER_PORT=8080 ./whatismyip          // if eth* available
+sudo SERVER_PORT=8080 ./whatismyip2          // if eth* available
 OR
-sudo SERVER_PORT=8080 ./whatismyip -inter <network_interface>
+sudo SERVER_PORT=8080 ./whatismyip2 -inter <network_interface>
 
 curl <vm_ip>:8080/
 curl <vm_ip>:8080/ip

@@ -17,7 +17,7 @@ import (
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 	"github.com/gorilla/mux"
-	"github.com/michalswi/whatismyip/server"
+	"github.com/michalswi/whatismyip2/server"
 )
 
 var (

@@ -1,4 +1,4 @@
-module github.com/michalswi/whatismyip
+module github.com/michalswi/whatismyip2
 
 go 1.15
 

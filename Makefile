@@ -2,7 +2,7 @@ GOLANG_VERSION := 1.15.6
 ALPINE_VERSION := 3.13
 
 DOCKER_REPO := local
-APPNAME := whatismyip
+APPNAME := whatismyip2
 
 SERVER_PORT ?= 8080
 
