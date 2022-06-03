@@ -65,7 +65,7 @@ func main() {
 		logger.Println("Server is ready to handle requests at port", serverPort)
 		err := srv.ListenAndServe()
 		if err != nil {
-			logger.Fatalf("server failed to start: %v", err)
+			logger.Printf("server failed to start: %v", err)
 		}
 	}()
 
