@@ -13,10 +13,13 @@ make
 ### # how to run
 
 ```
-# docker (if eth* available in your workstation)
+# docker (if eth* available at your PC)
 
 make docker-build
+
 make docker-run
+OR
+SERVER_PORT=5050 make docker-run
 
 curl localhost:8080/
 curl localhost:8080/ip

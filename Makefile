@@ -33,6 +33,7 @@ docker-run: ## Run docker
 	--network host \
 	--name $(APPNAME) \
 	-p $(SERVER_PORT):$(SERVER_PORT) \
+	--env SERVER_PORT=$(SERVER_PORT) \
 	$(DOCKER_REPO)/$(APPNAME):latest &&\
 	docker ps
 
